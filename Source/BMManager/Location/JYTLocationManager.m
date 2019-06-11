@@ -11,16 +11,18 @@
 #import "TransformCLLocation.h"
 #import <UIKit/UIKit.h>
 
-@interface JYTLocationManager () <CLLocationManagerDelegate>
+@interface JYTLocationManager () <AMapLocationManagerDelegate>
 {
-    CLLocationManager *_locationManager;
+    AMapLocationManager *_locationManager;
     NSTimer *_timer;
 }
-@property (nonatomic, strong) CLLocationManager *locationManager;
+@property (nonatomic, strong) AMapLocationManager *locationManager;
 @property (nonatomic, copy) CurrentLocationBlock currentLocationBlock;
+@property (nonatomic, copy) LocationBlock locationBlock;
 
 @property (nonatomic, copy) NSString *cacheLng;
 @property (nonatomic, copy) NSString *cacheLat;
+@property (nonatomic, strong) AMapLocationReGeocode *cacheReGeocode;
 
 @end
 
@@ -43,46 +45,46 @@
 {
     if (!_locationManager) {
         //定位管理器
-        _locationManager=[[CLLocationManager alloc]init];
+        _locationManager=[[AMapLocationManager alloc]init];
         //设置代理
         _locationManager.delegate = self;
         //设置定位精度
         _locationManager.desiredAccuracy=kCLLocationAccuracyBest;
         
-        
-        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
-            [_locationManager requestWhenInUseAuthorization];
-        }
     }
     return _locationManager;
 }
 
 - (void)updateCurrentLocation
 {
-    if (![CLLocationManager locationServicesEnabled]) {
+    [self.locationManager requestLocationWithReGeocode:YES completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
         
-        WXLogInfo(@"定位服务当前可能尚未打开，请设置打开！");
+        if (error)
+        {
+            NSLog(@"locError:{%ld - %@};", (long)error.code, error.localizedDescription);
+            
+            if (error.code == AMapLocationErrorLocateFailed)
+            {
+                return;
+            }
+        }
         
-        [self callBackWithLongitude:nil latitude:nil];
+        //定位信息
+        NSLog(@"location:%@", location);
         
-        return;
-    }
-    
-    /* 如果没有授权或者受限制返回nil */
-    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusRestricted || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
+        //逆地理信息
+        if (regeocode)
+        {
+            NSLog(@"reGeocode:%@", regeocode);
+        }
         
-        [self callBackWithLongitude:nil latitude:nil];
-        
-        return;
-    }
-    
-    //启动跟踪定位
-    [self.locationManager startUpdatingLocation];
+        [self callBackWithLongitude:[NSString stringWithFormat:@"%ld",location.coordinate.longitude] latitude:[NSString stringWithFormat:@"%ld",location.coordinate.latitude] reGeocode:regeocode];
+    }];
 }
 
 - (void)timerAction
 {
-    [self callBackWithLongitude:nil latitude:nil];
+    [self updateCurrentLocation];
 }
 
 #pragma mark - CLLocationManagerDelegate
@@ -120,6 +122,23 @@
     }
 }
 
+- (void)callBackWithLongitude:(NSString *)lng latitude:(NSString *)lat reGeocode:(AMapLocationReGeocode *)reGeocode
+{
+    // 缓存位置信息
+    self.cacheLng = lng;
+    self.cacheLat = lat;
+    self.cacheReGeocode = reGeocode;
+    
+    if (_timer) {
+        [_timer invalidate];
+        _timer = nil;
+    }
+    if (self.locationBlock) {
+        self.locationBlock(lng, lat, reGeocode);
+        //        _locationBlock = nil;
+    }
+}
+
 #pragma mark Public Method
 - (void)getCurrentLocation:(CurrentLocationBlock)block
 {
@@ -143,5 +162,34 @@
         [self getCurrentLocation:block];
     }
 }
+
+- (void)getLocation:(LocationBlock)block
+{
+    if (_timer) {
+        [_timer invalidate];
+        _timer = nil;
+    }
+    
+    _timer = [NSTimer scheduledTimerWithTimeInterval:3.0 target:self selector:@selector(timerAction) userInfo:nil repeats:NO];
+    
+    self.locationBlock = block;
+    [self updateCurrentLocation];
+}
+
+- (void)getCacheLocation:(LocationBlock)block
+{
+    // 判断如果有缓存信息直接返回，无缓存则实时获取一次
+    if (self.cacheLng && self.cacheLng.length > 0 && self.cacheLat && self.cacheLat.length > 0) {
+        block(self.cacheLng,self.cacheLat,self.cacheReGeocode);
+    } else {
+        [self getLocation:block];
+    }
+}
+
+#pragma mark -- AMapLocationManagerDelegate
+- (void)amapLocationManager:(AMapLocationManager *)manager doRequireLocationAuth:(CLLocationManager *)locationManager{
+    [locationManager requestAlwaysAuthorization];
+}
+
 
 @end

@@ -7,8 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AMapFoundationKit/AMapFoundationKit.h>
+#import <AMapLocationKit/AMapLocationKit.h>
 
 typedef void(^CurrentLocationBlock)(NSString *lon, NSString *lat);
+
+typedef void(^LocationBlock)(NSString *lon, NSString *lat,AMapLocationReGeocode *reGeocode);
 
 @interface JYTLocationManager : NSObject
 
