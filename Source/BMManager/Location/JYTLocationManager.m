@@ -176,7 +176,7 @@
     [self updateCurrentLocation];
 }
 
-- (void)getCacheLocation:(LocationBlock)block
+- (void)getCurrentCacheLocation:(LocationBlock)block
 {
     // 判断如果有缓存信息直接返回，无缓存则实时获取一次
     if (self.cacheLng && self.cacheLng.length > 0 && self.cacheLat && self.cacheLat.length > 0) {
