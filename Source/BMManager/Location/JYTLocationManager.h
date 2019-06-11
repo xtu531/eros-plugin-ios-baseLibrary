@@ -30,6 +30,6 @@ typedef void(^LocationBlock)(NSString *lon, NSString *lat,AMapLocationReGeocode 
  *
  *  @param block 返回上一次定位的信息
  */
-- (void)getCacheLocation:(CurrentLocationBlock)block;
+- (void)getCurrentCacheLocation:(CurrentLocationBlock)block;
 
 @end
