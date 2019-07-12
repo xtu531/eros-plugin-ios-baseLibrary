@@ -32,4 +32,8 @@ typedef void(^LocationBlock)(NSString *lon, NSString *lat,AMapLocationReGeocode 
  */
 - (void)getCacheLocation:(CurrentLocationBlock)block;
 
+- (void)getLocation:(LocationBlock)block;
+
+- (void)getCurrentCacheLocation:(LocationBlock)block;
+
 @end
