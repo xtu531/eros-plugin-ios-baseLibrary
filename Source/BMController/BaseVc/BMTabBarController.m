@@ -10,10 +10,12 @@
 #import "WXHandlerFactory.h"
 #import "BMMediatorManager.h"
 #import "UITabBar+Badge.h"
+#import "BMBaseViewController.h"
 
-@interface BMTabBarController () <UITabBarDelegate>
+@interface BMTabBarController () <UITabBarDelegate,UITabBarControllerDelegate>
 
 @property (nonatomic, assign) BOOL isLoadImage;
+@property (nonatomic, assign) int index;
 
 @end
 
@@ -34,6 +36,7 @@
     // Do any additional setup after loading the view.
     
     [[BMMediatorManager shareInstance] setBaseTabBarController:self];
+    self.delegate = self;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -82,13 +85,18 @@
     self.tabBar.shadowImage = [UIImage imageWithColor:K_CLEAR_COLOR size:CGSizeMake(self.tabBar.width, 0.5)];
     
     // 设置item选中之后图片文字的渲染颜色
-//    self.tabBar.tintColor = UIColorFromValue(0x00b4cb);
+    //    self.tabBar.tintColor = UIColorFromValue(0x00b4cb);
+    self.index = -1;
     
     // 遍历item设置图片
     NSArray *items = [self.tabBar items];
     for (int i = 0; i < [items count]; i++) {
         UITabBarItem *item = items[i];
         BMTabBarItem *itemInfo = self.tabBarInfo.list[i];
+        
+        if (itemInfo.action) {
+            self.index = i;
+        }
         
         [[self imageLoader] downloadImageWithURL:itemInfo.icon imageFrame:CGRectZero userInfo:nil completed:^(UIImage *image, NSError *error, BOOL finished) {
             item.image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
@@ -106,9 +114,9 @@
     topLine.backgroundColor = [UIColor colorWithHexString:self.tabBarInfo.borderColor? self.tabBarInfo.borderColor: @"0xdfe1eb"];
     // 插入最底层，解决异形tabBar被遮挡的问题
     [self.tabBar insertSubview:topLine atIndex:0];
- 
+    
     [self setItemFontSize];
-
+    
     // 注册改变字体的通知
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(setItemFontSize) name:K_CHANGE_FONT_SIZE_NOTIFICATION object:nil];
 }
@@ -139,15 +147,15 @@
         UITabBarItem *item = items[i];
         [item setTitleTextAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:currFont], NSForegroundColorAttributeName: [UIColor colorWithHexString:self.tabBarInfo.color ?: @"#777777"]} forState:UIControlStateNormal];
         [item setTitleTextAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:currFont], NSForegroundColorAttributeName: [UIColor colorWithHexString:self.tabBarInfo.selectedColor ?: @"#00b4cb"]} forState:UIControlStateSelected];
-
+        
         // 设置字体偏移
         [item setTitlePositionAdjustment:UIOffsetMake(0, titleOffsetVertical)];
-//        [item setImageInsets:UIEdgeInsetsMake(-4, 0, 4, 0)];
+        //        [item setImageInsets:UIEdgeInsetsMake(-4, 0, 4, 0)];
     }
     
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        [self.tabBar showBadgeOnItenIndex:0 value:@(5)];
-//    });
+    //    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    //        [self.tabBar showBadgeOnItenIndex:0 value:@(5)];
+    //    });
 }
 
 - (void)didReceiveMemoryWarning {
@@ -173,6 +181,25 @@
     
     // 移除通知
     [[NSNotificationCenter defaultCenter] removeObserver:self name:K_CHANGE_FONT_SIZE_NOTIFICATION object:nil];
+}
+
+- (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController{
+    if (viewController == self.viewControllers[self.index]) {
+        BMTabBarItem *itemInfo = self.tabBarInfo.list[self.index];
+        BMBaseViewController *viewController = [[BMBaseViewController alloc] init];
+        BMRouterModel *routerInfo = [[BMRouterModel alloc] init];
+        routerInfo.url = itemInfo.pagePath;
+        routerInfo.navShow = itemInfo.navShow;
+        routerInfo.navTitle = itemInfo.navTitle;
+        routerInfo.canBack = NO;
+        routerInfo.isTabBarItem = YES;
+        routerInfo.action = itemInfo.action;
+        viewController.routerModel = routerInfo;
+        viewController.url = [BMAppResource configJSFullURLWithPath:itemInfo.pagePath];
+        [self presentViewController:viewController animated:YES completion:nil];
+        return NO;
+    }
+    return YES;
 }
 
 @end

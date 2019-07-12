@@ -43,6 +43,7 @@
 #import "BMCommunicationModule.h"
 #import "BMImageModule.h"
 #import "BMWebSocketModule.h"
+#import "BMGlobalModule.h"
 
 #import <WeexSDK/WeexSDK.h>
 #import "WXUtility.h"
@@ -70,7 +71,7 @@
         NSString *decryptStr = [[[CryptLib alloc] init] decryptCipherTextWith:jStr key:AES_KEY iv:AES_IV];
         NSData *jData = [decryptStr dataUsingEncoding:NSUTF8StringEncoding];
         
-//        NSData *jData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"eros.native" ofType:@"json"]];
+        //        NSData *jData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"eros.native" ofType:@"json"]];
         NSDictionary *jDic = [NSJSONSerialization JSONObjectWithData:jData options:NSJSONReadingAllowFragments error:nil];
         _platform = [BMPlatformModel yy_modelWithJSON:jDic];
     }
@@ -109,7 +110,7 @@
     
     /** 设置sdimage减小内存占用 */
     [[SDWebImageDownloader sharedDownloader] setShouldDecompressImages:NO];
-  
+    
     
     /** 设置统一请求url */
     [[YTKNetworkConfig sharedConfig] setBaseUrl:platformInfo.url.request];
@@ -120,9 +121,9 @@
     
     /** 设置 HUD */
     [BMConfigManager configProgressHUD];
-
+    
     /* 监听截屏事件 */
-//    [[BMScreenshotEventManager shareInstance] monitorScreenshotEvent];
+    //    [[BMScreenshotEventManager shareInstance] monitorScreenshotEvent];
     
 }
 
@@ -151,14 +152,14 @@
 {
     
     NSDictionary *components = @{
-                                @"bmmask":          NSStringFromClass([BMMaskComponent class]),
-                                @"bmpop":           NSStringFromClass([BMPopupComponent class]),
-                                @"bmtext":          NSStringFromClass([BMTextComponent class]),
-                                @"bmrichtext":      NSStringFromClass([BMRichTextComponent class]),
-                                @"bmcalendar":      NSStringFromClass([BMCalendarComponent class]),
-                                @"bmspan":          NSStringFromClass([BMSpanComponent class]),
-                                @"bmchart":         NSStringFromClass([BMChartComponent class])
-                                };
+                                 @"bmmask":          NSStringFromClass([BMMaskComponent class]),
+                                 @"bmpop":           NSStringFromClass([BMPopupComponent class]),
+                                 @"bmtext":          NSStringFromClass([BMTextComponent class]),
+                                 @"bmrichtext":      NSStringFromClass([BMRichTextComponent class]),
+                                 @"bmcalendar":      NSStringFromClass([BMCalendarComponent class]),
+                                 @"bmspan":          NSStringFromClass([BMSpanComponent class]),
+                                 @"bmchart":         NSStringFromClass([BMChartComponent class])
+                                 };
     for (NSString *componentName in components) {
         [WXSDKEngine registerComponent:componentName withClass:NSClassFromString([components valueForKey:componentName])];
     }
@@ -181,7 +182,8 @@
                               @"bmNavigator":       NSStringFromClass([BMNavigatorModule class]),
                               @"bmCommunication":   NSStringFromClass([BMCommunicationModule class]),
                               @"bmImage":           NSStringFromClass([BMImageModule class]),
-                              @"bmWebSocket":       NSStringFromClass([BMWebSocketModule class])
+                              @"bmWebSocket":       NSStringFromClass([BMWebSocketModule class]),
+                              @"bmGlobalModal":     NSStringFromClass([BMGlobalModule class])
                               };
     
     for (NSString *moduleName in modules.allKeys) {

@@ -38,6 +38,7 @@
 @property (nonatomic, copy) NSString *selectedIcon; /**< 选择图标 */
 @property (nonatomic, assign) BOOL navShow; /**< 是否显示原生导航栏 */
 @property (nonatomic, copy) NSString *navTitle; /**< 导航栏标题 */
+@property (nonatomic, copy) NSString *action; /**< 点击是否弹出 */
 @end
 
 @interface BMPlatformModelTabBar : NSObject

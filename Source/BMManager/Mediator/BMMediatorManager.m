@@ -170,6 +170,7 @@
             routerInfo.navTitle = item.navTitle;
             routerInfo.canBack = NO;
             routerInfo.isTabBarItem = YES;
+            routerInfo.action = item.action;
             viewController.routerModel = routerInfo;
             viewController.url = [BMAppResource configJSFullURLWithPath:item.pagePath];
             BMNavigationController *navc = [[BMNavigationController alloc] initWithRootViewController:viewController];

@@ -9,12 +9,16 @@
 #import <WeexPluginLoader/WeexPluginLoader.h>
 #import "UITabBar+Badge.h"
 #import "BMMediatorManager.h"
+#import "BMAppDelegate.h"
+#import "BMTabBarController.h"
+#import "WXEmbedComponent.h"
 
 WX_PlUGIN_EXPORT_MODULE(bmTabbar, BMTabbarModule)
 
 @interface BMTabbarModule ()
 
 @property (nonatomic, copy) WXModuleKeepAliveCallback watchIndexCallBack;
+@property (nonatomic, strong)BMAppDelegate *appDelegate;
 
 @end
 
@@ -31,6 +35,7 @@ WX_EXPORT_METHOD(@selector(clearWatch))
 WX_EXPORT_METHOD_SYNC(@selector(getInfo))
 WX_EXPORT_METHOD_SYNC(@selector(setInfo:))
 WX_EXPORT_METHOD(@selector(clearInfo))
+WX_EXPORT_METHOD(@selector(refreshTab:))
 
 - (void)dealloc
 {
@@ -42,7 +47,7 @@ WX_EXPORT_METHOD(@selector(clearInfo))
 {
     int index = info[@"index"] ? [info[@"index"] intValue] : 0;
     NSString *value = info[@"value"];
-    UIColor *textColor = info[@"textColor"] ? [UIColor colorWithHexString:info[@"textColor"]] : [UIColor whiteColor];
+    UIColor *textColor = info[@"textColor"] ? [UIColor   colorWithHexString:info[@"textColor"]] : [UIColor whiteColor];
     UIColor *backgroundColor = info[@"bgColor"] ? [UIColor colorWithHexString:info[@"bgColor"]] : [UIColor redColor];
     
     [[BMMediatorManager shareInstance].baseTabBarController.tabBar showBadgeOnItenIndex:index
@@ -114,6 +119,40 @@ WX_EXPORT_METHOD(@selector(clearInfo))
 - (void)clearInfo
 {
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:K_BMTabbarInfo];
+}
+
+/** 刷新 */
+- (void)refreshTab:(NSDictionary *)info
+{
+    
+    int index = info[@"index"] ? [info[@"index"] intValue] : -1;
+    NSDictionary *tabInfo = [self getInfo];
+    
+    
+    BMTabBarController *tabBarController = [[BMTabBarController alloc] init];
+    NSDictionary *item = tabInfo[@"list"][index];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"change" object:nil];
+    
+    
+    _appDelegate.window.rootViewController = [[BMMediatorManager shareInstance] loadHomeViewController];
+    [_appDelegate.window makeKeyAndVisible];
+    
+    //    if (self.weexInstance.parentInstance) {
+    //        WXSDKInstance *instance = self.weexInstance.parentInstance;
+    //        NSString *nodeRef = self.weexInstance.parentNodeRef;
+    //        WXEmbedComponent *embedComponent= (WXEmbedComponent *)[instance componentForRef:nodeRef];
+    //        [embedComponent refreshWeex];
+    //    }
+    //    else {
+    //        UIViewController *controller = self.weexInstance.viewController;
+    //        if ([controller respondsToSelector:@selector(refreshWeex)]) {
+    //            [controller performSelector:@selector(refreshWeex) withObject:nil];
+    //        }
+    //    }
+    //
+    //
+    //    [_appDelegate.window makeKeyAndVisible];
 }
 
 @end

@@ -31,4 +31,5 @@
 
 @property (nonatomic,copy) NSString * pageName;                 /**< 页面名 可以用作Router 更易读 */
 @property (nonatomic, assign) BOOL isTabBarItem;                /**< 是否是TabBar中的页面 */
+@property (nonatomic, copy) NSString *action; /**< 点击是否弹出 */
 @end
