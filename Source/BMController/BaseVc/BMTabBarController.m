@@ -184,7 +184,7 @@
 }
 
 - (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController{
-    if (viewController == self.viewControllers[self.index]) {
+    if (viewController == self.viewControllers[self.index] && self.index != -1) {
         BMTabBarItem *itemInfo = self.tabBarInfo.list[self.index];
         BMBaseViewController *viewController = [[BMBaseViewController alloc] init];
         BMRouterModel *routerInfo = [[BMRouterModel alloc] init];
